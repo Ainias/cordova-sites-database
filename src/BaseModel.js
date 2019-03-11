@@ -1,18 +1,27 @@
-import {EntitySchema} from "typeorm";
+import {BaseDatabase} from "./BaseDatabase";
 
 export class BaseModel {
     constructor(){
         this.id = null;
+        this._isLoaded = false;
     }
 
     static getColumnDefinitions(){
         return {
             id: {
                 primary: true,
-                type: "int",
+                type: BaseDatabase.TYPES.INTEGER,
                 generated: true
             },
         }
+    }
+
+    static getRelationDefinitions(){
+        return {};
+    }
+
+    static getRelations(){
+        return Object.keys(this.getRelationDefinitions());
     }
 
     static getSchemaDefinition(){
@@ -20,8 +29,8 @@ export class BaseModel {
             name: this.getSchemaName(),
             target: this,
             columns: this.getColumnDefinitions(),
-            relations: {}
-        }
+            relations: this.getRelationDefinitions()
+        };
     }
 
     static getSchemaName(){
@@ -52,12 +61,12 @@ export class BaseModel {
         return BaseModel._databaseClass.getInstance().findOneEntity(this, where, order, offset, relations);
     }
 
-    static async findById(id){
-        return BaseModel._databaseClass.getInstance().findById(this, id);
+    static async findById(id, relations){
+        return BaseModel._databaseClass.getInstance().findById(this, id, relations);
     }
 
-    static async findByIds(ids){
-        return BaseModel._databaseClass.getInstance().findByIds(this, ids);
+    static async findByIds(ids, relations){
+        return BaseModel._databaseClass.getInstance().findByIds(this, ids, relations);
     }
 
     static async clear(){
@@ -66,7 +75,7 @@ export class BaseModel {
 }
 
 /**
- * @type {null | Database}
+ * @type {null | BaseDatabase}
  * @private
  */
 BaseModel._databaseClass = null;

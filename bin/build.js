@@ -15,7 +15,7 @@ const fileOptions = [{
     ],
     output: {
         format: 'es',
-        file: path.resolve(process.cwd(), 'dist/cordova-sites-database.js'),
+        file: path.resolve(process.cwd(), 'dist/cordova-sites-database.mjs'),
         nameFile: path.resolve(process.cwd(), 'dist/cordova-sites-database.names.json'),
     }
 }
