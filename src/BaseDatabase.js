@@ -23,7 +23,7 @@ export class BaseDatabase {
             entities.push(new BaseDatabase.typeorm.EntitySchema(BaseDatabase._models[modelName].getSchemaDefinition()));
         });
         options.entities = entities;
-        return options;
+        return Object.assign(options, BaseDatabase.CONNECTION_OPTIONS);
     }
 
     async saveEntity(entity) {
@@ -155,7 +155,7 @@ export class BaseDatabase {
         }
     }
 }
-
+BaseDatabase.CONNECTION_OPTIONS = {};
 BaseDatabase.typeorm = null;
 BaseDatabase._models = {};
 
