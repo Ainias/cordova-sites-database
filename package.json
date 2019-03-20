@@ -5,19 +5,23 @@
   "description": "Erstellen von Datenbankobjekten für Cordova",
   "main": "dist/cordova-sites-database.mjs",
   "scripts": {
-    "build": "node bin/build.js"
+    "build": "node bin/build.js",
+    "update packages": "node bin/updateCopies.js"
   },
   "author": "Silas Günther",
-  "dependencies": {
-    "reflect-metadata": "^0.1.13",
-    "@types/node": "9.6.0",
-    "cordova-sqlite-storage": "^3.0.0",
+  "peerDependencies":  {
+    "cordova-sqlite-storage": "^3.2.0",
+    "cordova-plugin-device": "^2.0.2",
     "sql.js": "^0.5.0",
-    "typeorm": "^0.2.7"
+    "typeorm": "^0.2.15"
   },
   "devDependencies": {
+    "cordova-plugin-device": "^2.0.2",
     "rollup": "^1.6.0",
     "rollup-plugin-commonjs": "^9.2.0",
-    "rollup-plugin-json": "^3.1.0"
+    "rollup-plugin-json": "^3.1.0",
+    "cordova-sqlite-storage": "^3.2.0",
+    "sql.js": "^0.5.0",
+    "typeorm": "^0.2.15"
   }
 }

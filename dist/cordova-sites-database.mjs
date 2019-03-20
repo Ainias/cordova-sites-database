@@ -1,7 +1,16 @@
+import * as _typeorm from 'typeorm';
+
+let typeorm = _typeorm;
+if (typeorm.default){
+    typeorm = typeorm.default;
+}
+
 class BaseDatabase {
 
     constructor(database) {
-        this._connectionPromise = BaseDatabase.typeorm.createConnection(this._createConnectionOptions(database)).catch(e => {
+        let options = this._createConnectionOptions(database);
+        console.log(options);
+        this._connectionPromise = typeorm.createConnection(options).catch(e => {
             console.error(e);
             return Promise.reject(e);
         });
@@ -10,9 +19,10 @@ class BaseDatabase {
     _createConnectionOptions(database) {
         let options = BaseDatabase.CONNECTION_OPTIONS;
 
-        if (typeof device !== "undefined" && device.platform !== "browser") {
+        if (typeof device === "undefined" || device.platform !== "browser") {
             options.type = "cordova";
             options.database = database;
+            // options.location = "default";
         } else {
             options.type = "sqljs";
             options.location = database;
@@ -20,10 +30,10 @@ class BaseDatabase {
 
         let entities = [];
         Object.keys(BaseDatabase._models).forEach(modelName => {
-            entities.push(new BaseDatabase.typeorm.EntitySchema(BaseDatabase._models[modelName].getSchemaDefinition()));
+            entities.push(new typeorm.EntitySchema(BaseDatabase._models[modelName].getSchemaDefinition()));
         });
         options.entities = entities;
-        return Object.assign(options, BaseDatabase.CONNECTION_OPTIONS);
+        return options;
     }
 
     async saveEntity(entity) {
@@ -108,7 +118,6 @@ class BaseDatabase {
     }
 
     async deleteEntity(entity, model) {
-        let repository = null;
         if (Array.isArray(entity)) {
             if (entity.length === 0) {
                 return entity;
@@ -129,7 +138,7 @@ class BaseDatabase {
                 entity = entity.id;
             }
         }
-        repository = await this._getRepository(model);
+        let repository = await this._getRepository(model);
         return repository.delete(entity);
     }
 
@@ -155,14 +164,13 @@ class BaseDatabase {
         }
     }
 }
-BaseDatabase.CONNECTION_OPTIONS = {};
-BaseDatabase.typeorm = null;
+
 BaseDatabase._models = {};
 
 BaseDatabase.CONNECTION_OPTIONS = {
-    "location": "default",
-    autoSave: true,
-    logging: false,
+    location: "default",
+    // autoSave: true,
+    logging: true,
     synchronize: true,
 };
 BaseDatabase.TYPES = {
