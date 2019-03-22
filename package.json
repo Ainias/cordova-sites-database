@@ -12,6 +12,7 @@
   "peerDependencies":  {
     "cordova-sqlite-storage": "^3.2.0",
     "cordova-plugin-device": "^2.0.2",
+    "localforage": "^1.7.3",
     "sql.js": "^0.5.0",
     "typeorm": "^0.2.15"
   },

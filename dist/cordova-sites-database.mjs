@@ -9,7 +9,6 @@ class BaseDatabase {
 
     constructor(database) {
         let options = this._createConnectionOptions(database);
-        console.log(options);
         this._connectionPromise = typeorm.createConnection(options).catch(e => {
             console.error(e);
             return Promise.reject(e);
@@ -26,14 +25,21 @@ class BaseDatabase {
         } else {
             options.type = "sqljs";
             options.location = database;
+            options.autoSave = true;
+            options.useLocalForage = true;
         }
 
+        options.entities = this.getEntityDefinitions();
+        return options;
+    }
+
+    getEntityDefinitions(){
         let entities = [];
         Object.keys(BaseDatabase._models).forEach(modelName => {
+            BaseDatabase._models[modelName]._database = this;
             entities.push(new typeorm.EntitySchema(BaseDatabase._models[modelName].getSchemaDefinition()));
         });
-        options.entities = entities;
-        return options;
+        return entities;
     }
 
     async saveEntity(entity) {
@@ -142,6 +148,10 @@ class BaseDatabase {
         return repository.delete(entity);
     }
 
+    async waitForConnection(){
+        return this._connectionPromise;
+    }
+
     /**
      * @return {BaseDatabase}
      */
@@ -170,7 +180,7 @@ BaseDatabase._models = {};
 BaseDatabase.CONNECTION_OPTIONS = {
     location: "default",
     // autoSave: true,
-    logging: true,
+    logging: ["error", "warn"],
     synchronize: true,
 };
 BaseDatabase.TYPES = {
@@ -186,6 +196,14 @@ class BaseModel {
     constructor(){
         this.id = null;
         this._isLoaded = false;
+    }
+
+    getId(){
+        return this.id;
+    }
+
+    setId(id){
+        this.id = id;
     }
 
     static getColumnDefinitions(){
@@ -207,10 +225,16 @@ class BaseModel {
     }
 
     static getSchemaDefinition(){
+        let columns = this.getColumnDefinitions();
+        Object.keys(columns).forEach(column => {
+            if (typeof columns[column] === "string"){
+                columns[column] = {type: columns[column]};
+            }
+        });
         return {
             name: this.getSchemaName(),
             target: this,
-            columns: this.getColumnDefinitions(),
+            columns: columns,
             relations: this.getRelationDefinitions()
         };
     }
@@ -224,35 +248,35 @@ class BaseModel {
     }
 
     async save(){
-        return BaseModel._databaseClass.getInstance().saveEntity(this);
+        return this.constructor._database.saveEntity(this);
     }
 
     async delete(){
-        return BaseModel._databaseClass.getInstance().deleteEntity(this);
+        return this.constructor._database.deleteEntity(this);
     }
 
     static async find(where, order, limit, offset, relations){
-        return BaseModel._databaseClass.getInstance().findEntities(this, where, order, limit, offset, relations);
+        return this._database.findEntities(this, where, order, limit, offset, relations);
     }
 
     static async findAndCount(where, order, limit, offset, relations){
-        return BaseModel._databaseClass.getInstance().findAndCountEntities(this, where, order, limit, offset, relations);
+        return this._database.findAndCountEntities(this, where, order, limit, offset, relations);
     }
 
     static async findOne(where, order, offset, relations){
-        return BaseModel._databaseClass.getInstance().findOneEntity(this, where, order, offset, relations);
+        return this._database.findOneEntity(this, where, order, offset, relations);
     }
 
     static async findById(id, relations){
-        return BaseModel._databaseClass.getInstance().findById(this, id, relations);
+        return this._database.findById(this, id, relations);
     }
 
     static async findByIds(ids, relations){
-        return BaseModel._databaseClass.getInstance().findByIds(this, ids, relations);
+        return this._database.findByIds(this, ids, relations);
     }
 
     static async clear(){
-        return BaseModel._databaseClass.getInstance().clearModel(this);
+        return this._database.clearModel(this);
     }
 }
 
@@ -260,6 +284,6 @@ class BaseModel {
  * @type {null | BaseDatabase}
  * @private
  */
-BaseModel._databaseClass = null;
+BaseModel._database = null;
 
 export { BaseDatabase, BaseModel };

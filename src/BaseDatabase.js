@@ -9,7 +9,6 @@ export class BaseDatabase {
 
     constructor(database) {
         let options = this._createConnectionOptions(database);
-        console.log(options);
         this._connectionPromise = typeorm.createConnection(options).catch(e => {
             console.error(e);
             return Promise.reject(e);
@@ -26,14 +25,21 @@ export class BaseDatabase {
         } else {
             options.type = "sqljs";
             options.location = database;
+            options.autoSave = true;
+            options.useLocalForage = true;
         }
 
+        options.entities = this.getEntityDefinitions();
+        return options;
+    }
+
+    getEntityDefinitions(){
         let entities = [];
         Object.keys(BaseDatabase._models).forEach(modelName => {
+            BaseDatabase._models[modelName]._database = this;
             entities.push(new typeorm.EntitySchema(BaseDatabase._models[modelName].getSchemaDefinition()));
         });
-        options.entities = entities;
-        return options;
+        return entities;
     }
 
     async saveEntity(entity) {
@@ -142,6 +148,10 @@ export class BaseDatabase {
         return repository.delete(entity);
     }
 
+    async waitForConnection(){
+        return this._connectionPromise;
+    }
+
     /**
      * @return {BaseDatabase}
      */
@@ -170,7 +180,7 @@ BaseDatabase._models = {};
 BaseDatabase.CONNECTION_OPTIONS = {
     location: "default",
     // autoSave: true,
-    logging: true,
+    logging: ["error", "warn"],
     synchronize: true,
 };
 BaseDatabase.TYPES = {
