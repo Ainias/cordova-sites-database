@@ -188,6 +188,7 @@ BaseDatabase.TYPES = {
     FLOAT: "float",
     DATE: "datetime",
     STRING: "varchar",
+    TEXT: "text",
     BOOLEAN: "boolean",
     JSON: "simple-json"
 };
