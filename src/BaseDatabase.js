@@ -191,5 +191,6 @@ BaseDatabase.TYPES = {
     TEXT: "text",
     MEDIUMTEXT: "mediumtext",
     BOOLEAN: "boolean",
-    JSON: "simple-json"
+    JSON: "json",
+    SIMPLE_JSON: "simple-json"
 };

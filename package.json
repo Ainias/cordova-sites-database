@@ -9,7 +9,7 @@
     "update packages": "node bin/updateCopies.js"
   },
   "author": "Silas Günther",
-  "peerDependencies":  {
+  "peerDependencies": {
     "cordova-sqlite-storage": "^3.2.0",
     "cordova-plugin-device": "^2.0.2",
     "localforage": "^1.7.3",
