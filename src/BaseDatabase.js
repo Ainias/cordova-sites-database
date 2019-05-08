@@ -1,7 +1,7 @@
 import * as _typeorm from "typeorm";
 
 let typeorm = _typeorm;
-if (typeorm.default){
+if (typeorm.default) {
     typeorm = typeorm.default;
 }
 
@@ -23,17 +23,25 @@ export class BaseDatabase {
             options.database = database;
             // options.location = "default";
         } else {
+            let saveTimeout = null;
+
             options.type = "sqljs";
             options.location = database;
             options.autoSave = true;
             options.useLocalForage = true;
+            options.autoSaveCallback = function () {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                        typeorm.getSqljsManager().saveDatabase();
+                }, 250);
+            }
         }
 
         options.entities = this.getEntityDefinitions();
         return options;
     }
 
-    getEntityDefinitions(){
+    getEntityDefinitions() {
         let entities = [];
         Object.keys(BaseDatabase._models).forEach(modelName => {
             BaseDatabase._models[modelName]._database = this;
@@ -148,7 +156,7 @@ export class BaseDatabase {
         return repository.delete(entity);
     }
 
-    async waitForConnection(){
+    async waitForConnection() {
         return this._connectionPromise;
     }
 
