@@ -38,6 +38,9 @@ export class BaseModel {
             if (typeof columns[column] === "string"){
                 columns[column] = {type: columns[column]};
             }
+            // if (!columns[column]["charset"]){
+            //     columns[column]["charset"] = "utf8"
+            // }
         });
         return {
             name: this.getSchemaName(),

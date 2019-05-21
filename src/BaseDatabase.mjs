@@ -32,8 +32,8 @@ export class BaseDatabase {
             options.autoSaveCallback = function () {
                 clearTimeout(saveTimeout);
                 saveTimeout = setTimeout(() => {
-                        typeorm.getSqljsManager().saveDatabase();
-                }, 250);
+                    typeorm.getSqljsManager().saveDatabase();
+                }, 150);
             }
         }
 
@@ -190,6 +190,9 @@ BaseDatabase.CONNECTION_OPTIONS = {
     // autoSave: true,
     logging: ["error", "warn"],
     synchronize: true,
+    // charset: "utf8mb4",
+    // extra: {
+    // }
 };
 BaseDatabase.TYPES = {
     INTEGER: "int",
