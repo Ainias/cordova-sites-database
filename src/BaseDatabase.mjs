@@ -136,7 +136,7 @@ export class BaseDatabase {
             if (entity.length === 0) {
                 return entity;
             }
-            if (model === null) {
+            if (!model) {
                 model = entity[0].constructor;
             }
             if (typeof entity[0] !== "number") {
@@ -145,7 +145,7 @@ export class BaseDatabase {
                 entity = ids;
             }
         } else {
-            if (model === null) {
+            if (!model) {
                 model = entity.constructor;
             }
             if (typeof entity !== "number") {
