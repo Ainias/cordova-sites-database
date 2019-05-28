@@ -1,13 +1,7 @@
-const rollup = require("rollup");
 const path = require("path");
 const fs = require('fs');
-const jsonRollup = require("rollup-plugin-json");
-const commonjs = require('rollup-plugin-commonjs');
-// const importFilePath = require("rollup-plugin-import-file-path");
-// const htmlImportFilePath = require("rollup-plugin-html-import-file-path");
 
 const tmpFile = "./tmp/script.js";
-
 
 function findNames(dir, excluded) {
     let names = {};

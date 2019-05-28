@@ -47,6 +47,7 @@ export class BaseDatabase {
             BaseDatabase._models[modelName]._database = this;
             entities.push(new typeorm.EntitySchema(BaseDatabase._models[modelName].getSchemaDefinition()));
         });
+        // console.log("entities", entities);
         return entities;
     }
 
@@ -203,5 +204,6 @@ BaseDatabase.TYPES = {
     MEDIUMTEXT: "mediumtext",
     BOOLEAN: "boolean",
     JSON: "json",
-    SIMPLE_JSON: "simple-json"
+    SIMPLE_JSON: "simple-json",
+    MY_JSON:"my-json"
 };
