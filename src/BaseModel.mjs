@@ -99,3 +99,10 @@ export class BaseModel {
  * @private
  */
 BaseModel._database = null;
+
+BaseModel.RELATION = {
+    MANY_TO_MANY: "many-to-many",
+    MANY_TO_ONE: "many-to-one",
+    ONE_TO_MANY: "one-to-many",
+    ONE_TO_ONE: "one-to-one"
+};

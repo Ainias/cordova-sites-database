@@ -5,9 +5,9 @@ const fs = require('fs');
 const packageName = require("../package.json").name;
 
 let pathsToProjects = [
-    // "/home/silas/Projekte/Web/project-echo",
-    // "/home/silas/Projekte/Web/cordova-sites-easy-sync",
-    // "/home/silas/Projekte/Web/cordova-sites-user-management",
+    "/home/silas/Projekte/Web/project-echo",
+    "/home/silas/Projekte/Web/cordova-sites-easy-sync",
+    "/home/silas/Projekte/Web/cordova-sites-user-management",
     "/home/silas/Projekte/i9/mbb"
 
     // "/home/silas/PhpstormProjects/project-echo",
