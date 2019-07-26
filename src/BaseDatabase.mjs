@@ -132,6 +132,17 @@ export class BaseDatabase {
         return connection.getRepository(model);
     }
 
+    async createQueryBuilder(model){
+        if (model){
+            let repo = await this._getRepository(model);
+            return repo.createQueryBuilder(model.getSchemaName());
+        }
+        else {
+            let connection = await this._connectionPromise;
+            return connection.createQueryBuilder();
+        }
+    }
+
     async deleteEntity(entity, model) {
         if (Array.isArray(entity)) {
             if (entity.length === 0) {
