@@ -1,6 +1,14 @@
 import {BaseDatabase} from "./BaseDatabase";
 
 export class BaseModel {
+
+    static SCHEMA_NAME:string;
+    static _database: BaseDatabase;
+    static RELATION;
+
+    id: number;
+    _isLoaded: boolean;
+
     constructor() {
         this.id = null;
         this._isLoaded = false;
@@ -62,30 +70,30 @@ export class BaseModel {
     }
 
     async save() {
-        return this.constructor._database.saveEntity(this);
+        return (<typeof BaseModel>this.constructor)._database.saveEntity(this);
     }
 
     async delete() {
-        return this.constructor._database.deleteEntity(this);
+        return (<typeof BaseModel>this.constructor)._database.deleteEntity(this);
     }
 
-    static async find(where, order, limit, offset, relations) {
+    static async find(where?, order?, limit?, offset?, relations?) {
         return this._database.findEntities(this, where, order, limit, offset, relations);
     }
 
-    static async findAndCount(where, order, limit, offset, relations) {
+    static async findAndCount(where?, order?, limit?, offset?, relations?) {
         return this._database.findAndCountEntities(this, where, order, limit, offset, relations);
     }
 
-    static async findOne(where, order, offset, relations) {
+    static async findOne(where?, order?, offset?, relations?) {
         return this._database.findOneEntity(this, where, order, offset, relations);
     }
 
-    static async findById(id, relations) {
+    static async findById(id, relations?) {
         return this._database.findById(this, id, relations);
     }
 
-    static async findByIds(ids, relations) {
+    static async findByIds(ids, relations?) {
         return this._database.findByIds(this, ids, relations);
     }
 

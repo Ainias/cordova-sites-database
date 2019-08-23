@@ -1,13 +1,21 @@
 import * as _typeorm from "typeorm";
+import {BaseModel} from "./BaseModel";
 
 let typeorm = _typeorm;
-if (typeorm.default) {
-    typeorm = typeorm.default;
-}
+
+declare let device: any;
 
 export class BaseDatabase {
 
-    constructor(database) {
+    static CONNECTION_OPTIONS;
+    static _models;
+    static instance: BaseDatabase;
+    static TYPES;
+
+    _connectionPromise;
+
+
+    constructor(database?) {
         let options = this._createConnectionOptions(database);
         this._connectionPromise = typeorm.createConnection(options).catch(e => {
             console.error(e);
@@ -38,6 +46,7 @@ export class BaseDatabase {
         }
 
         options.entities = this.getEntityDefinitions();
+        // options.migrations = this.constructor._migrations;
         return options;
     }
 
@@ -97,27 +106,27 @@ export class BaseDatabase {
         return (isArray) ? models : models[0];
     }
 
-    async findEntities(model, where, order, limit, offset, relations) {
+    async findEntities(model, where?, order?, limit?, offset?, relations?) {
         let repository = await this._getRepository(model);
         return BaseDatabase._setLoaded(repository.find(BaseDatabase._buildQuery(where, order, limit, offset, relations)));
     }
 
-    async findAndCountEntities(model, where, order, limit, offset, relations) {
+    async findAndCountEntities(model, where?, order?, limit?, offset?, relations?) {
         let repository = await this._getRepository(model);
         return BaseDatabase._setLoaded(repository.findAndCount(BaseDatabase._buildQuery(where, order, limit, offset, relations)));
     }
 
-    async findOneEntity(model, where, order, offset, relations) {
+    async findOneEntity(model, where?, order?, offset?, relations?) {
         let repository = await this._getRepository(model);
         return BaseDatabase._setLoaded(repository.findOne(BaseDatabase._buildQuery(where, order, undefined, offset, relations)));
     }
 
-    async findById(model, id, relations) {
+    async findById(model, id, relations?) {
         let repository = await this._getRepository(model);
         return BaseDatabase._setLoaded(repository.findOne(id, BaseDatabase._buildQuery(undefined, undefined, undefined, undefined, relations)));
     }
 
-    async findByIds(model, ids, relations) {
+    async findByIds(model, ids, relations?) {
         let repository = await this._getRepository(model);
         return BaseDatabase._setLoaded(repository.findByIds(ids, BaseDatabase._buildQuery(undefined, undefined, undefined, undefined, relations)));
     }
@@ -132,7 +141,7 @@ export class BaseDatabase {
         return connection.getRepository(model);
     }
 
-    async createQueryBuilder(model){
+    async createQueryBuilder(model?){
         if (model){
             let repo = await this._getRepository(model);
             return repo.createQueryBuilder(model.getSchemaName());
@@ -143,7 +152,7 @@ export class BaseDatabase {
         }
     }
 
-    async deleteEntity(entity, model) {
+    async deleteEntity(entity, model?) {
         if (Array.isArray(entity)) {
             if (entity.length === 0) {
                 return entity;
@@ -186,7 +195,7 @@ export class BaseDatabase {
         BaseDatabase._models[model.getSchemaName()] = model;
     }
 
-    static getModel(modelName) {
+    static getModel(modelName?) {
         if (modelName) {
             return this._models[modelName]
         } else {
