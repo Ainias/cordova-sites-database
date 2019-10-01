@@ -14,7 +14,6 @@ export class BaseDatabase {
 
     _connectionPromise;
 
-
     constructor(database?) {
         let options = this._createConnectionOptions(database);
         this._connectionPromise = typeorm.createConnection(options).catch(e => {
@@ -29,7 +28,6 @@ export class BaseDatabase {
         if (typeof device === "undefined" || device.platform !== "browser") {
             options.type = "cordova";
             options.database = database;
-            // options.location = "default";
         } else {
             let saveTimeout = null;
 
