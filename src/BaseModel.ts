@@ -2,7 +2,7 @@ import {BaseDatabase} from "./BaseDatabase";
 
 export class BaseModel {
 
-    static SCHEMA_NAME:string;
+    static SCHEMA_NAME: string;
     static _database: BaseDatabase;
     static RELATION;
 
@@ -49,8 +49,12 @@ export class BaseModel {
             if (columns[column].type === BaseDatabase.TYPES.MY_JSON && !columns[column].transformer) {
                 columns[column].type = BaseDatabase.TYPES.MEDIUMTEXT;
                 columns[column].transformer = {
-                    from: text => {return (text?JSON.parse(text):null)},
-                    to: json => {return (json?JSON.stringify(json):"")}
+                    from: text => {
+                        return (text ? JSON.parse(text) : null)
+                    },
+                    to: json => {
+                        return (json ? JSON.stringify(json) : "")
+                    }
                 }
             }
         });
@@ -77,7 +81,7 @@ export class BaseModel {
         return (<typeof BaseModel>this.constructor)._database.deleteEntity(this);
     }
 
-    static async saveMany(entities){
+    static async saveMany(entities) {
         return this._database.saveEntity(entities);
     }
 
@@ -103,6 +107,24 @@ export class BaseModel {
 
     static async clear() {
         return this._database.clearModel(this);
+    }
+
+    static equals(a, b) {
+        if (a === b) {
+            return true;
+        }
+
+        if (a === null || b === null){
+            return false;
+        }
+
+        if (Array.isArray(a) && Array.isArray(b) && a.length === b.length) {
+            return a.every((subA, index) => {
+                this.equals(subA, b[index]);
+            });
+        } else if (a instanceof this && b instanceof this) {
+            return a.constructor === b.constructor && a.getId() === b.getId();
+        }
     }
 }
 
