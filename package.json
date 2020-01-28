@@ -3,9 +3,9 @@
   "displayName": "[CS] Database",
   "version": "0.1.0",
   "description": "Erstellen von Datenbankobjekten für Cordova",
-  "main": "dist/cordova-sites-database.ts",
+  "main": "dist/cordova-sites-database.js",
   "scripts": {
-    "build": "node bin/build.js",
+    "build": "node bin/build.js & tsc",
     "update packages": "node bin/updateCopies.js"
   },
   "author": "Silas Günther",
@@ -21,6 +21,8 @@
     "cordova-sqlite-storage": "^3.2.0",
     "localforage": "^1.7.3",
     "sql.js": "^0.5.0",
-    "typeorm": "^0.2.15"
+    "@types/node": "^12.12.14",
+    "typeorm": "^0.2.20",
+    "typescript": "^3.7.2"
   }
 }

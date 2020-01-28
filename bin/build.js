@@ -53,4 +53,4 @@ buildEntryPoints({
     input: [
         path.resolve(process.cwd(), "src/"),
     ],
-}, "./dist/cordova-sites-database.ts");
+}, "./src/cordova-sites-database.ts");
