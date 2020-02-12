@@ -14,9 +14,18 @@ let typeorm = _typeorm;
 class BaseDatabase {
     constructor(database) {
         let options = this._createConnectionOptions(database);
-        this._connectionPromise = typeorm.createConnection(options).catch(e => {
-            console.error(e);
-            return Promise.reject(e);
+        this._connectionPromise = this._createConnection(options);
+    }
+    _createConnection(options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (options.type === "sqljs") {
+                //wait for SQL to be initialized
+                window["SQL"] = yield window["initSqlJs"]();
+            }
+            return typeorm.createConnection(options).catch(e => {
+                console.error(e);
+                return Promise.reject(e);
+            });
         });
     }
     _createConnectionOptions(database) {
@@ -178,6 +187,11 @@ class BaseDatabase {
             }
             let repository = yield this._getRepository(model);
             return repository.delete(entity);
+        });
+    }
+    rawQuery(sql, params) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return (yield this._connectionPromise).query(sql, params);
         });
     }
     waitForConnection() {

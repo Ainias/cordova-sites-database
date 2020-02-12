@@ -1,3 +1,4 @@
+import * as _typeorm from "typeorm";
 export declare class BaseDatabase {
     static CONNECTION_OPTIONS: any;
     static _models: any;
@@ -5,6 +6,7 @@ export declare class BaseDatabase {
     static TYPES: any;
     _connectionPromise: any;
     constructor(database?: any);
+    _createConnection(options: any): Promise<_typeorm.Connection>;
     _createConnectionOptions(database: any): any;
     getEntityDefinitions(): any[];
     saveEntity(entity: any): Promise<any>;
@@ -19,6 +21,7 @@ export declare class BaseDatabase {
     _getRepository(model: any): Promise<any>;
     createQueryBuilder(model?: any): Promise<any>;
     deleteEntity(entity: any, model?: any): Promise<any>;
+    rawQuery(sql: any, params?: any): Promise<any>;
     waitForConnection(): Promise<any>;
     /**
      * @return {BaseDatabase}

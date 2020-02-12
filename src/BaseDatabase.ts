@@ -1,5 +1,4 @@
 import * as _typeorm from "typeorm";
-import {BaseModel} from "./BaseModel";
 
 let typeorm = _typeorm;
 
@@ -16,7 +15,15 @@ export class BaseDatabase {
 
     constructor(database?) {
         let options = this._createConnectionOptions(database);
-        this._connectionPromise = typeorm.createConnection(options).catch(e => {
+        this._connectionPromise = this._createConnection(options);
+    }
+
+    async _createConnection(options){
+        if (options.type === "sqljs"){
+            //wait for SQL to be initialized
+            window["SQL"] = await window["initSqlJs"]();
+        }
+        return typeorm.createConnection(options).catch(e => {
             console.error(e);
             return Promise.reject(e);
         });
@@ -173,6 +180,10 @@ export class BaseDatabase {
         }
         let repository = await this._getRepository(model);
         return repository.delete(entity);
+    }
+
+    async rawQuery(sql, params?){
+        return (await this._connectionPromise).query(sql, params)
     }
 
     async waitForConnection() {
