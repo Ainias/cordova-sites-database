@@ -104,7 +104,7 @@ class BaseDatabase {
             if (!isArray) {
                 models = [models];
             }
-            models.forEach(models => models._isLoaded = true);
+            models.forEach(models => models.setLoaded(true));
             return (isArray) ? models : models[0];
         });
     }
@@ -238,6 +238,6 @@ BaseDatabase.TYPES = {
     BOOLEAN: "boolean",
     JSON: "json",
     SIMPLE_JSON: "simple-json",
-    MY_JSON: "my-json"
+    MY_JSON: "my-json",
 };
 //# sourceMappingURL=BaseDatabase.js.map

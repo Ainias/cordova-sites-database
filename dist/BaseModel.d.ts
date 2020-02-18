@@ -30,6 +30,7 @@ export declare class BaseModel {
         relations: {};
     };
     static getSchemaName(): string;
+    setLoaded(isLoaded: any): void;
     save(): Promise<any>;
     delete(): Promise<any>;
     static saveMany(entities: any): Promise<any>;

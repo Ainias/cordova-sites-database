@@ -72,6 +72,9 @@ export class BaseModel {
         }
         return this.SCHEMA_NAME;
     }
+    setLoaded(isLoaded){
+        this._isLoaded = isLoaded;
+    }
 
     async save() {
         return (<typeof BaseModel>this.constructor)._database.saveEntity(this);

@@ -67,6 +67,9 @@ class BaseModel {
         }
         return this.SCHEMA_NAME;
     }
+    setLoaded(isLoaded) {
+        this._isLoaded = isLoaded;
+    }
     save() {
         return __awaiter(this, void 0, void 0, function* () {
             return this.constructor._database.saveEntity(this);
