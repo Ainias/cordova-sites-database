@@ -33,6 +33,7 @@ export declare class BaseModel {
     setLoaded(isLoaded: any): void;
     save(): Promise<any>;
     delete(): Promise<any>;
+    static deleteMany(entities: any): Promise<any>;
     static saveMany(entities: any): Promise<any>;
     static find(where?: any, order?: any, limit?: any, offset?: any, relations?: any): Promise<any>;
     static findAndCount(where?: any, order?: any, limit?: any, offset?: any, relations?: any): Promise<any>;

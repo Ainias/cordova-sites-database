@@ -80,6 +80,11 @@ class BaseModel {
             return this.constructor._database.deleteEntity(this);
         });
     }
+    static deleteMany(entities) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this._database.deleteEntity(entities);
+        });
+    }
     static saveMany(entities) {
         return __awaiter(this, void 0, void 0, function* () {
             return this._database.saveEntity(entities);

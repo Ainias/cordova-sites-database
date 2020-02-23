@@ -84,6 +84,10 @@ export class BaseModel {
         return (<typeof BaseModel>this.constructor)._database.deleteEntity(this);
     }
 
+    static async deleteMany(entities) {
+        return this._database.deleteEntity(entities);
+    }
+
     static async saveMany(entities) {
         return this._database.saveEntity(entities);
     }
