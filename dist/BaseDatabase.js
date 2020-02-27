@@ -162,6 +162,12 @@ class BaseDatabase {
             }
         });
     }
+    createQueryRunner() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let connection = yield this._connectionPromise;
+            return connection.createQueryRunner();
+        });
+    }
     deleteEntity(entity, model) {
         return __awaiter(this, void 0, void 0, function* () {
             if (Array.isArray(entity)) {

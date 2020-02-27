@@ -1,4 +1,5 @@
 import * as _typeorm from "typeorm";
+import {QueryBuilder, QueryRunner} from "typeorm";
 
 let typeorm = _typeorm;
 
@@ -146,7 +147,7 @@ export class BaseDatabase {
         return connection.getRepository(model);
     }
 
-    async createQueryBuilder(model?){
+    async createQueryBuilder(model?): Promise<QueryBuilder<any>>{
         if (model){
             let repo = await this._getRepository(model);
             return repo.createQueryBuilder(model.getSchemaName());
@@ -155,6 +156,11 @@ export class BaseDatabase {
             let connection = await this._connectionPromise;
             return connection.createQueryBuilder();
         }
+    }
+
+    async createQueryRunner(): Promise<QueryRunner>{
+        let connection = await this._connectionPromise;
+        return connection.createQueryRunner();
     }
 
     async deleteEntity(entity, model?) {
