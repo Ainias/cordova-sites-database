@@ -43,12 +43,14 @@ export class BaseDatabase {
             options.location = database;
             options.autoSave = true;
             options.useLocalForage = true;
-            options.autoSaveCallback = function () {
-                clearTimeout(saveTimeout);
-                saveTimeout = setTimeout(() => {
-                    typeorm.getSqljsManager().saveDatabase();
-                }, 150);
-            }
+
+            //Deactivated delay of saving since PRAGMA foreign_keys = ON is not saved with delay (why ever!)
+            // options.autoSaveCallback = function () {
+            //     clearTimeout(saveTimeout);
+            //     saveTimeout = setTimeout(() => {
+            //         typeorm.getSqljsManager().saveDatabase();
+            //     }, 150);
+            // }
         }
 
         options.entities = this.getEntityDefinitions();
@@ -147,7 +149,7 @@ export class BaseDatabase {
         return connection.getRepository(model);
     }
 
-    async createQueryBuilder(model?): Promise<QueryBuilder<any>>{
+    async createQueryBuilder(model?): Promise<any>{
         if (model){
             let repo = await this._getRepository(model);
             return repo.createQueryBuilder(model.getSchemaName());

@@ -40,12 +40,13 @@ class BaseDatabase {
             options.location = database;
             options.autoSave = true;
             options.useLocalForage = true;
-            options.autoSaveCallback = function () {
-                clearTimeout(saveTimeout);
-                saveTimeout = setTimeout(() => {
-                    typeorm.getSqljsManager().saveDatabase();
-                }, 150);
-            };
+            //Deactivated delay of saving since PRAGMA foreign_keys = ON is not saved with delay (why ever!)
+            // options.autoSaveCallback = function () {
+            //     clearTimeout(saveTimeout);
+            //     saveTimeout = setTimeout(() => {
+            //         typeorm.getSqljsManager().saveDatabase();
+            //     }, 150);
+            // }
         }
         options.entities = this.getEntityDefinitions();
         // options.migrations = this.constructor._migrations;

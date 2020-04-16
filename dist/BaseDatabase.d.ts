@@ -1,5 +1,5 @@
 import * as _typeorm from "typeorm";
-import { QueryBuilder, QueryRunner } from "typeorm";
+import { QueryRunner } from "typeorm";
 export declare class BaseDatabase {
     static CONNECTION_OPTIONS: any;
     static _models: any;
@@ -20,7 +20,7 @@ export declare class BaseDatabase {
     findByIds(model: any, ids: any, relations?: any): Promise<any>;
     clearModel(model: any): Promise<any>;
     _getRepository(model: any): Promise<any>;
-    createQueryBuilder(model?: any): Promise<QueryBuilder<any>>;
+    createQueryBuilder(model?: any): Promise<any>;
     createQueryRunner(): Promise<QueryRunner>;
     deleteEntity(entity: any, model?: any): Promise<any>;
     rawQuery(sql: any, params?: any): Promise<any>;
