@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.BaseModel = void 0;
 const BaseDatabase_1 = require("./BaseDatabase");
 class BaseModel {
     constructor() {
@@ -50,6 +51,30 @@ class BaseModel {
                     },
                     to: json => {
                         return (json ? JSON.stringify(json) : "");
+                    }
+                };
+            }
+            if (columns[column].type === BaseDatabase_1.BaseDatabase.TYPES.BOOLEAN && !columns[column].transformer) {
+                columns[column].transformer = {
+                    from: val => {
+                        console.log("boolean-transformator", val);
+                        if (val === "false") {
+                            return false;
+                        }
+                        else if (val === "true") {
+                            return true;
+                        }
+                        else {
+                            return val;
+                        }
+                    },
+                    to: val => {
+                        if (val === true) {
+                            return 1;
+                        }
+                        else {
+                            return 0;
+                        }
                     }
                 };
             }

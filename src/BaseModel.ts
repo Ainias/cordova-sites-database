@@ -57,6 +57,29 @@ export class BaseModel {
                     }
                 }
             }
+            if (columns[column].type === BaseDatabase.TYPES.BOOLEAN && !columns[column].transformer) {
+                columns[column].transformer = {
+                    from: val => {
+                        if (val === "false"){
+                            return false;
+                        }
+                        else if (val === "true"){
+                            return true;
+                        }
+                        else {
+                            return val
+                        }
+                    },
+                    to: val => {
+                        if (val === true){
+                            return 1
+                        }
+                        else {
+                            return 0;
+                        }
+                    }
+                }
+            }
         });
         return {
             name: this.getSchemaName(),

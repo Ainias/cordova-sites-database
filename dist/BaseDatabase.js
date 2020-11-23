@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.BaseDatabase = void 0;
 const _typeorm = require("typeorm");
 let typeorm = _typeorm;
 class BaseDatabase {
