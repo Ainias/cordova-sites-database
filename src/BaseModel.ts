@@ -72,10 +72,10 @@ export class BaseModel {
                     },
                     to: val => {
                         if (val === true){
-                            return 1
+                            return true
                         }
                         else {
-                            return 0;
+                            return false;
                         }
                     }
                 }

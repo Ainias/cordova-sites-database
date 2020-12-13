@@ -149,7 +149,7 @@ export class BaseDatabase {
         return connection.getRepository(model);
     }
 
-    async createQueryBuilder(model?): Promise<any>{
+    async createQueryBuilder(model?): Promise<QueryBuilder<any>>{
         if (model){
             let repo = await this._getRepository(model);
             return repo.createQueryBuilder(model.getSchemaName());

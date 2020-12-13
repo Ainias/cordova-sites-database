@@ -57,7 +57,7 @@ class BaseModel {
             if (columns[column].type === BaseDatabase_1.BaseDatabase.TYPES.BOOLEAN && !columns[column].transformer) {
                 columns[column].transformer = {
                     from: val => {
-                        console.log("boolean-transformator", val);
+                        console.log("from", val);
                         if (val === "false") {
                             return false;
                         }
@@ -69,11 +69,12 @@ class BaseModel {
                         }
                     },
                     to: val => {
+                        console.log("to", val);
                         if (val === true) {
-                            return 1;
+                            return true;
                         }
                         else {
-                            return 0;
+                            return false;
                         }
                     }
                 };
