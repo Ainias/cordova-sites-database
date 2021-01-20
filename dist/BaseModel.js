@@ -69,10 +69,10 @@ class BaseModel {
                     },
                     to: val => {
                         if (val === true) {
-                            return true;
+                            return 1;
                         }
                         else {
-                            return false;
+                            return 0;
                         }
                     }
                 };

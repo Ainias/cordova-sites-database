@@ -10,11 +10,11 @@
   },
   "author": "Silas Günther",
   "peerDependencies": {
-    "cordova-sqlite-storage": "^5.0.0",
+    "cordova-sqlite-storage": "^5.1.0",
     "cordova-plugin-device": "^2.0.3",
-    "localforage": "^1.7.4",
-    "sql.js": "^1.3.0",
-    "typeorm": "^0.2.25"
+    "localforage": "^1.9.0",
+    "sql.js": "^1.4.0",
+    "typeorm": "^0.2.30"
   },
   "devDependencies": {
     "cordova-plugin-device": "^2.0.3",
