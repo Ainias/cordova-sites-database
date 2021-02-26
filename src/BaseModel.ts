@@ -71,6 +71,8 @@ export class BaseModel {
                         }
                     },
                     to: val => {
+                        // console.log("to", val);
+                        return val;
                         if (val === true){
                             return 1
                         }
