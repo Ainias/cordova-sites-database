@@ -96,48 +96,60 @@ class BaseDatabase {
         }
         return query;
     }
-    static _setLoaded(models) {
+    static _setLoaded(entities, model) {
         return __awaiter(this, void 0, void 0, function* () {
-            models = yield models;
-            if (models === null || models === undefined) {
+            entities = yield entities;
+            if (entities === null || entities === undefined) {
                 return null;
             }
-            let isArray = Array.isArray(models);
+            let isArray = Array.isArray(entities);
             if (!isArray) {
-                models = [models];
+                entities = [entities];
             }
-            models.forEach(models => models.setLoaded(true));
-            return (isArray) ? models : models[0];
+            const relations = model.getRelationDefinitions();
+            const relationKeys = Object.keys(relations);
+            const promises = [];
+            entities.forEach(entity => {
+                entity.setLoaded(true);
+                relationKeys.forEach(relationName => {
+                    if (entity[relationName]) {
+                        const otherModel = this.getModel(relations[relationName].target);
+                        promises.push(this._setLoaded(entity[relationName], otherModel));
+                    }
+                });
+            });
+            yield Promise.all(promises);
+            return (isArray) ? entities : entities[0];
         });
     }
     findEntities(model, where, order, limit, offset, relations) {
         return __awaiter(this, void 0, void 0, function* () {
             let repository = yield this._getRepository(model);
-            return BaseDatabase._setLoaded(repository.find(BaseDatabase._buildQuery(where, order, limit, offset, relations)));
+            return BaseDatabase._setLoaded(repository.find(BaseDatabase._buildQuery(where, order, limit, offset, relations)), model);
         });
     }
     findAndCountEntities(model, where, order, limit, offset, relations) {
         return __awaiter(this, void 0, void 0, function* () {
             let repository = yield this._getRepository(model);
-            return BaseDatabase._setLoaded(repository.findAndCount(BaseDatabase._buildQuery(where, order, limit, offset, relations)));
+            return BaseDatabase._setLoaded(repository.findAndCount(BaseDatabase._buildQuery(where, order, limit, offset, relations)), model);
         });
     }
     findOneEntity(model, where, order, offset, relations) {
         return __awaiter(this, void 0, void 0, function* () {
             let repository = yield this._getRepository(model);
-            return BaseDatabase._setLoaded(repository.findOne(BaseDatabase._buildQuery(where, order, undefined, offset, relations)));
+            return BaseDatabase._setLoaded(repository.findOne(BaseDatabase._buildQuery(where, order, undefined, offset, relations)), model);
         });
     }
     findById(model, id, relations) {
         return __awaiter(this, void 0, void 0, function* () {
             let repository = yield this._getRepository(model);
-            return BaseDatabase._setLoaded(repository.findOne(id, BaseDatabase._buildQuery(undefined, undefined, undefined, undefined, relations)));
+            return BaseDatabase._setLoaded(repository.findOne(id, BaseDatabase._buildQuery(undefined, undefined, undefined, undefined, relations)), model);
         });
     }
     findByIds(model, ids, relations) {
         return __awaiter(this, void 0, void 0, function* () {
             let repository = yield this._getRepository(model);
-            return BaseDatabase._setLoaded(repository.findByIds(ids, BaseDatabase._buildQuery(undefined, undefined, undefined, undefined, relations)));
+            return BaseDatabase._setLoaded(repository.findByIds(ids, BaseDatabase._buildQuery(undefined, undefined, undefined, undefined, relations)), model);
         });
     }
     clearModel(model) {

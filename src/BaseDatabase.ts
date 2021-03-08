@@ -19,8 +19,8 @@ export class BaseDatabase {
         this._connectionPromise = this._createConnection(options);
     }
 
-    async _createConnection(options){
-        if (options.type === "sqljs"){
+    async _createConnection(options) {
+        if (options.type === "sqljs") {
             //wait for SQL to be initialized
             window["SQL"] = await window["initSqlJs"]();
         }
@@ -101,42 +101,56 @@ export class BaseDatabase {
         return query;
     }
 
-    static async _setLoaded(models) {
-        models = await models;
-        if (models === null || models === undefined) {
+    static async _setLoaded(entities, model) {
+        entities = await entities;
+        if (entities === null || entities === undefined) {
             return null;
         }
-        let isArray = Array.isArray(models);
+        let isArray = Array.isArray(entities);
         if (!isArray) {
-            models = [models];
+            entities = [entities];
         }
-        models.forEach(models => models.setLoaded(true));
-        return (isArray) ? models : models[0];
+        const relations = model.getRelationDefinitions();
+        const relationKeys = Object.keys(relations);
+
+        const promises = [];
+        entities.forEach(entity => {
+            entity.setLoaded(true);
+            relationKeys.forEach(relationName => {
+                if (entity[relationName]) {
+                    const otherModel = this.getModel(relations[relationName].target);
+                    promises.push(this._setLoaded(entity[relationName], otherModel));
+                }
+            })
+        });
+
+        await Promise.all(promises);
+        return (isArray) ? entities : entities[0];
     }
 
     async findEntities(model, where?, order?, limit?, offset?, relations?) {
         let repository = await this._getRepository(model);
-        return BaseDatabase._setLoaded(repository.find(BaseDatabase._buildQuery(where, order, limit, offset, relations)));
+        return BaseDatabase._setLoaded(repository.find(BaseDatabase._buildQuery(where, order, limit, offset, relations)), model);
     }
 
     async findAndCountEntities(model, where?, order?, limit?, offset?, relations?) {
         let repository = await this._getRepository(model);
-        return BaseDatabase._setLoaded(repository.findAndCount(BaseDatabase._buildQuery(where, order, limit, offset, relations)));
+        return BaseDatabase._setLoaded(repository.findAndCount(BaseDatabase._buildQuery(where, order, limit, offset, relations)), model);
     }
 
     async findOneEntity(model, where?, order?, offset?, relations?) {
         let repository = await this._getRepository(model);
-        return BaseDatabase._setLoaded(repository.findOne(BaseDatabase._buildQuery(where, order, undefined, offset, relations)));
+        return BaseDatabase._setLoaded(repository.findOne(BaseDatabase._buildQuery(where, order, undefined, offset, relations)), model);
     }
 
     async findById(model, id, relations?) {
         let repository = await this._getRepository(model);
-        return BaseDatabase._setLoaded(repository.findOne(id, BaseDatabase._buildQuery(undefined, undefined, undefined, undefined, relations)));
+        return BaseDatabase._setLoaded(repository.findOne(id, BaseDatabase._buildQuery(undefined, undefined, undefined, undefined, relations)), model);
     }
 
     async findByIds(model, ids, relations?) {
         let repository = await this._getRepository(model);
-        return BaseDatabase._setLoaded(repository.findByIds(ids, BaseDatabase._buildQuery(undefined, undefined, undefined, undefined, relations)));
+        return BaseDatabase._setLoaded(repository.findByIds(ids, BaseDatabase._buildQuery(undefined, undefined, undefined, undefined, relations)), model);
     }
 
     async clearModel(model) {
@@ -149,18 +163,17 @@ export class BaseDatabase {
         return connection.getRepository(model);
     }
 
-    async createQueryBuilder(model?): Promise<QueryBuilder<any>>{
-        if (model){
+    async createQueryBuilder(model?): Promise<QueryBuilder<any>> {
+        if (model) {
             let repo = await this._getRepository(model);
             return repo.createQueryBuilder(model.getSchemaName());
-        }
-        else {
+        } else {
             let connection = await this._connectionPromise;
             return connection.createQueryBuilder();
         }
     }
 
-    async createQueryRunner(): Promise<QueryRunner>{
+    async createQueryRunner(): Promise<QueryRunner> {
         let connection = await this._connectionPromise;
         return connection.createQueryRunner();
     }
@@ -190,7 +203,7 @@ export class BaseDatabase {
         return repository.delete(entity);
     }
 
-    async rawQuery(sql, params?){
+    async rawQuery(sql, params?) {
         return (await this._connectionPromise).query(sql, params)
     }
 
@@ -242,5 +255,5 @@ BaseDatabase.TYPES = {
     BOOLEAN: "boolean",
     JSON: "json",
     SIMPLE_JSON: "simple-json",
-    MY_JSON:"my-json",
+    MY_JSON: "my-json",
 };

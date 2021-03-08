@@ -12,7 +12,7 @@ export declare class BaseDatabase {
     getEntityDefinitions(): any[];
     saveEntity(entity: any): Promise<any>;
     static _buildQuery(where: any, order: any, limit: any, offset: any, relations: any): {};
-    static _setLoaded(models: any): Promise<any>;
+    static _setLoaded(entities: any, model: any): Promise<any>;
     findEntities(model: any, where?: any, order?: any, limit?: any, offset?: any, relations?: any): Promise<any>;
     findAndCountEntities(model: any, where?: any, order?: any, limit?: any, offset?: any, relations?: any): Promise<any>;
     findOneEntity(model: any, where?: any, order?: any, offset?: any, relations?: any): Promise<any>;
