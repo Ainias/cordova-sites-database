@@ -247,6 +247,9 @@ BaseDatabase.CONNECTION_OPTIONS = {
     // autoSave: true,
     logging: ["error", "warn"],
     synchronize: true,
+    // charset: "utf8mb4",
+    // extra: {
+    // }
 };
 BaseDatabase.TYPES = {
     INTEGER: "int",
