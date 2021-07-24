@@ -125,6 +125,10 @@ export class BaseModel {
         return this._database.findAndCountEntities(this, where, order, limit, offset, relations);
     }
 
+    static async count(where?, order?, limit?, offset?, relations?) {
+        return this._database.count(this, where, order, limit, offset, relations);
+    }
+
     static async findOne(where?, order?, offset?, relations?) {
         return this._database.findOneEntity(this, where, order, offset, relations);
     }

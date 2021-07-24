@@ -35,8 +35,9 @@ export declare class BaseModel {
     delete(): Promise<any>;
     static deleteMany(entities: any): Promise<any>;
     static saveMany(entities: any): Promise<any>;
-    static find(where?: any, order?: any, limit?: any, offset?: any, relations?: any): Promise<any>;
+    static find(where?: any, order?: any, limit?: any, offset?: any, relations?: any): Promise<BaseModel[]>;
     static findAndCount(where?: any, order?: any, limit?: any, offset?: any, relations?: any): Promise<any>;
+    static count(where?: any, order?: any, limit?: any, offset?: any, relations?: any): Promise<any>;
     static findOne(where?: any, order?: any, offset?: any, relations?: any): Promise<any>;
     static findById(id: any, relations?: any): Promise<any>;
     static findByIds(ids: any, relations?: any): Promise<any>;

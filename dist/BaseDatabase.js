@@ -134,6 +134,12 @@ class BaseDatabase {
             return BaseDatabase._setLoaded(repository.findAndCount(BaseDatabase._buildQuery(where, order, limit, offset, relations)), model);
         });
     }
+    count(model, where, order, limit, offset, relations) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let repository = yield this._getRepository(model);
+            return repository.count(BaseDatabase._buildQuery(where, order, limit, offset, relations));
+        });
+    }
     findOneEntity(model, where, order, offset, relations) {
         return __awaiter(this, void 0, void 0, function* () {
             let repository = yield this._getRepository(model);

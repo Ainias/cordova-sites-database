@@ -1,5 +1,6 @@
 import * as _typeorm from "typeorm";
 import { QueryBuilder, QueryRunner } from "typeorm";
+import { BaseModel } from "./BaseModel";
 export declare class BaseDatabase {
     static CONNECTION_OPTIONS: any;
     static _models: any;
@@ -13,8 +14,9 @@ export declare class BaseDatabase {
     saveEntity(entity: any): Promise<any>;
     static _buildQuery(where: any, order: any, limit: any, offset: any, relations: any): {};
     static _setLoaded(entities: any, model: any): Promise<any>;
-    findEntities(model: any, where?: any, order?: any, limit?: any, offset?: any, relations?: any): Promise<any>;
+    findEntities<ModelClass extends typeof BaseModel>(model: ModelClass, where?: any, order?: any, limit?: any, offset?: any, relations?: any): Promise<ModelClass["prototype"][]>;
     findAndCountEntities(model: any, where?: any, order?: any, limit?: any, offset?: any, relations?: any): Promise<any>;
+    count(model: any, where?: any, order?: any, limit?: any, offset?: any, relations?: any): Promise<any>;
     findOneEntity(model: any, where?: any, order?: any, offset?: any, relations?: any): Promise<any>;
     findById(model: any, id: any, relations?: any): Promise<any>;
     findByIds(model: any, ids: any, relations?: any): Promise<any>;

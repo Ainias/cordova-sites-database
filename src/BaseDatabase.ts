@@ -1,5 +1,6 @@
 import * as _typeorm from "typeorm";
 import {QueryBuilder, QueryRunner} from "typeorm";
+import {BaseModel} from "./BaseModel";
 
 let typeorm = _typeorm;
 
@@ -12,7 +13,7 @@ export class BaseDatabase {
     static instance: BaseDatabase;
     static TYPES;
 
-    _connectionPromise;
+    private readonly _connectionPromise: Promise<_typeorm.Connection>;
 
     constructor(database?) {
         let options = this._createConnectionOptions(database);
@@ -101,7 +102,7 @@ export class BaseDatabase {
         return query;
     }
 
-    static async _setLoaded(entities, model) {
+    static async _setLoadedForarry<ModelClass extends typeof BaseModel>(entities, model: ModelClass) {
         entities = await entities;
         if (entities === null || entities === undefined) {
             return null;
@@ -128,7 +129,34 @@ export class BaseDatabase {
         return (isArray) ? entities : entities[0];
     }
 
-    async findEntities(model, where?, order?, limit?, offset?, relations?) {
+    static async _setLoaded<ModelClass extends typeof BaseModel>(entities, model: ModelClass) {
+        entities = await entities;
+        if (entities === null || entities === undefined) {
+            return null;
+        }
+        let isArray = Array.isArray(entities);
+        if (!isArray) {
+            entities = [entities];
+        }
+        const relations = model.getRelationDefinitions();
+        const relationKeys = Object.keys(relations);
+
+        const promises = [];
+        entities.forEach(entity => {
+            entity.setLoaded(true);
+            relationKeys.forEach(relationName => {
+                if (entity[relationName]) {
+                    const otherModel = this.getModel(relations[relationName].target);
+                    promises.push(this._setLoaded(entity[relationName], otherModel));
+                }
+            })
+        });
+
+        await Promise.all(promises);
+        return (isArray) ? entities : entities[0];
+    }
+
+    async findEntities<ModelClass extends typeof BaseModel>(model: ModelClass, where?, order?, limit?, offset?, relations?): Promise<ModelClass["prototype"][]> {
         let repository = await this._getRepository(model);
         return BaseDatabase._setLoaded(repository.find(BaseDatabase._buildQuery(where, order, limit, offset, relations)), model);
     }
@@ -136,6 +164,11 @@ export class BaseDatabase {
     async findAndCountEntities(model, where?, order?, limit?, offset?, relations?) {
         let repository = await this._getRepository(model);
         return BaseDatabase._setLoaded(repository.findAndCount(BaseDatabase._buildQuery(where, order, limit, offset, relations)), model);
+    }
+
+    async count(model, where?, order?, limit?, offset?, relations?) {
+        let repository = await this._getRepository(model);
+        return repository.count(BaseDatabase._buildQuery(where, order, limit, offset, relations));
     }
 
     async findOneEntity(model, where?, order?, offset?, relations?) {
@@ -158,7 +191,7 @@ export class BaseDatabase {
         return repository.clear();
     }
 
-    async _getRepository(model) {
+    async _getRepository<ModelClass extends typeof BaseModel>(model: ModelClass) {
         let connection = await this._connectionPromise;
         return connection.getRepository(model);
     }

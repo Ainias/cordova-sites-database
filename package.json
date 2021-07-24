@@ -1,7 +1,7 @@
 {
   "name": "cordova-sites-database",
   "displayName": "[CS] Database",
-  "version": "0.1.0",
+  "version": "0.5.1",
   "description": "Erstellen von Datenbankobjekten für Cordova",
   "main": "dist/cordova-sites-database.js",
   "scripts": {
