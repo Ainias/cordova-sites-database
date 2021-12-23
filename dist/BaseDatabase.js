@@ -11,37 +11,45 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseDatabase = void 0;
 const _typeorm = require("typeorm");
-let typeorm = _typeorm;
+const typeorm = _typeorm;
 class BaseDatabase {
     constructor(database) {
-        let options = this._createConnectionOptions(database);
-        this._connectionPromise = this._createConnection(options);
+        this.options = this.createConnectionOptions(database);
+        this.connectionPromise = BaseDatabase.createConnection(this.options);
     }
-    _createConnection(options) {
+    getConnectionPromise() {
+        return this.connectionPromise;
+    }
+    static createConnection(options) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (options.type === "sqljs") {
-                //wait for SQL to be initialized
-                window["SQL"] = yield window["initSqlJs"]();
+            if (options.type === 'sqljs') {
+                // wait for SQL to be initialized
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                window.SQL = yield window.initSqlJs();
             }
-            return typeorm.createConnection(options).catch(e => {
+            return typeorm.createConnection(options).catch((e) => {
                 console.error(e);
                 return Promise.reject(e);
             });
         });
     }
-    _createConnectionOptions(database) {
-        let options = BaseDatabase.CONNECTION_OPTIONS;
-        if (typeof device === "undefined" || device.platform !== "browser") {
-            options.type = "cordova";
+    isCordova() {
+        return this.options.type === 'cordova';
+    }
+    createConnectionOptions(database) {
+        const options = BaseDatabase.CONNECTION_OPTIONS;
+        if (typeof device === 'undefined' || device.platform !== 'browser') {
+            options.type = 'cordova';
             options.database = database;
+            options.migrationsTransactionMode = 'none';
         }
         else {
-            let saveTimeout = null;
-            options.type = "sqljs";
+            options.type = 'sqljs';
             options.location = database;
             options.autoSave = true;
             options.useLocalForage = true;
-            //Deactivated delay of saving since PRAGMA foreign_keys = ON is not saved with delay (why ever!)
+            // Deactivated delay of saving since PRAGMA foreign_keys = ON is not saved with delay (why ever!)
             // options.autoSaveCallback = function () {
             //     clearTimeout(saveTimeout);
             //     saveTimeout = setTimeout(() => {
@@ -54,10 +62,10 @@ class BaseDatabase {
         return options;
     }
     getEntityDefinitions() {
-        let entities = [];
-        Object.keys(BaseDatabase._models).forEach(modelName => {
-            BaseDatabase._models[modelName]._database = this;
-            entities.push(new typeorm.EntitySchema(BaseDatabase._models[modelName].getSchemaDefinition()));
+        const entities = [];
+        Object.keys(BaseDatabase.models).forEach((modelName) => {
+            BaseDatabase.models[modelName].setDatabase(this);
+            entities.push(new typeorm.EntitySchema(BaseDatabase.models[modelName].getSchemaDefinition()));
         });
         // console.log("entities", entities);
         return entities;
@@ -69,122 +77,146 @@ class BaseDatabase {
                 if (entity.length === 0) {
                     return entity;
                 }
-                repository = yield this._getRepository(entity[0].constructor);
+                repository = yield this.getRepository(entity[0].constructor);
             }
             else {
-                repository = yield this._getRepository(entity.constructor);
+                repository = yield this.getRepository(entity.constructor);
             }
-            return repository.save(entity);
+            return repository.save(entity, { transaction: !this.isCordova() });
         });
     }
-    static _buildQuery(where, order, limit, offset, relations) {
-        let query = {};
+    static buildQuery(where, order, limit, offset, relations) {
+        const query = {};
         if (where) {
-            query["where"] = where;
+            query.where = where;
         }
         if (order) {
-            query["order"] = order;
+            query.order = order;
         }
         if (limit) {
-            query["take"] = limit;
+            query.take = limit;
         }
         if (offset) {
-            query["skip"] = offset;
+            query.skip = offset;
         }
         if (relations) {
-            query["relations"] = relations;
+            query.relations = relations;
         }
         return query;
     }
-    static _setLoaded(entities, model) {
+    static setLoadedForArray(entities, model) {
         return __awaiter(this, void 0, void 0, function* () {
             entities = yield entities;
             if (entities === null || entities === undefined) {
                 return null;
             }
-            let isArray = Array.isArray(entities);
+            const isArray = Array.isArray(entities);
             if (!isArray) {
                 entities = [entities];
             }
             const relations = model.getRelationDefinitions();
             const relationKeys = Object.keys(relations);
             const promises = [];
-            entities.forEach(entity => {
+            entities.forEach((entity) => {
                 entity.setLoaded(true);
-                relationKeys.forEach(relationName => {
+                relationKeys.forEach((relationName) => {
                     if (entity[relationName]) {
                         const otherModel = this.getModel(relations[relationName].target);
-                        promises.push(this._setLoaded(entity[relationName], otherModel));
+                        promises.push(this.setLoaded(entity[relationName], otherModel));
                     }
                 });
             });
             yield Promise.all(promises);
-            return (isArray) ? entities : entities[0];
+            return isArray ? entities : entities[0];
+        });
+    }
+    static setLoaded(entities, model) {
+        return __awaiter(this, void 0, void 0, function* () {
+            entities = yield entities;
+            if (entities === null || entities === undefined) {
+                return null;
+            }
+            const isArray = Array.isArray(entities);
+            if (!isArray) {
+                entities = [entities];
+            }
+            const relations = model.getRelationDefinitions();
+            const relationKeys = Object.keys(relations);
+            const promises = [];
+            entities.forEach((entity) => {
+                entity.setLoaded(true);
+                relationKeys.forEach((relationName) => {
+                    if (entity[relationName]) {
+                        const otherModel = this.getModel(relations[relationName].target);
+                        promises.push(this.setLoaded(entity[relationName], otherModel));
+                    }
+                });
+            });
+            yield Promise.all(promises);
+            return isArray ? entities : entities[0];
         });
     }
     findEntities(model, where, order, limit, offset, relations) {
         return __awaiter(this, void 0, void 0, function* () {
-            let repository = yield this._getRepository(model);
-            return BaseDatabase._setLoaded(repository.find(BaseDatabase._buildQuery(where, order, limit, offset, relations)), model);
+            const repository = yield this.getRepository(model);
+            return BaseDatabase.setLoaded(repository.find(BaseDatabase.buildQuery(where, order, limit, offset, relations)), model);
         });
     }
     findAndCountEntities(model, where, order, limit, offset, relations) {
         return __awaiter(this, void 0, void 0, function* () {
-            let repository = yield this._getRepository(model);
-            return BaseDatabase._setLoaded(repository.findAndCount(BaseDatabase._buildQuery(where, order, limit, offset, relations)), model);
+            const repository = yield this.getRepository(model);
+            return BaseDatabase.setLoaded(repository.findAndCount(BaseDatabase.buildQuery(where, order, limit, offset, relations)), model);
         });
     }
     count(model, where, order, limit, offset, relations) {
         return __awaiter(this, void 0, void 0, function* () {
-            let repository = yield this._getRepository(model);
-            return repository.count(BaseDatabase._buildQuery(where, order, limit, offset, relations));
+            const repository = yield this.getRepository(model);
+            return repository.count(BaseDatabase.buildQuery(where, order, limit, offset, relations));
         });
     }
     findOneEntity(model, where, order, offset, relations) {
         return __awaiter(this, void 0, void 0, function* () {
-            let repository = yield this._getRepository(model);
-            return BaseDatabase._setLoaded(repository.findOne(BaseDatabase._buildQuery(where, order, undefined, offset, relations)), model);
+            const repository = yield this.getRepository(model);
+            return BaseDatabase.setLoaded(repository.findOne(BaseDatabase.buildQuery(where, order, undefined, offset, relations)), model);
         });
     }
     findById(model, id, relations) {
         return __awaiter(this, void 0, void 0, function* () {
-            let repository = yield this._getRepository(model);
-            return BaseDatabase._setLoaded(repository.findOne(id, BaseDatabase._buildQuery(undefined, undefined, undefined, undefined, relations)), model);
+            const repository = yield this.getRepository(model);
+            return BaseDatabase.setLoaded(repository.findOne(id, BaseDatabase.buildQuery(undefined, undefined, undefined, undefined, relations)), model);
         });
     }
     findByIds(model, ids, relations) {
         return __awaiter(this, void 0, void 0, function* () {
-            let repository = yield this._getRepository(model);
-            return BaseDatabase._setLoaded(repository.findByIds(ids, BaseDatabase._buildQuery(undefined, undefined, undefined, undefined, relations)), model);
+            const repository = yield this.getRepository(model);
+            return BaseDatabase.setLoaded(repository.findByIds(ids, BaseDatabase.buildQuery(undefined, undefined, undefined, undefined, relations)), model);
         });
     }
     clearModel(model) {
         return __awaiter(this, void 0, void 0, function* () {
-            let repository = yield this._getRepository(model);
+            const repository = yield this.getRepository(model);
             return repository.clear();
         });
     }
-    _getRepository(model) {
+    getRepository(model) {
         return __awaiter(this, void 0, void 0, function* () {
-            let connection = yield this._connectionPromise;
+            const connection = yield this.connectionPromise;
             return connection.getRepository(model);
         });
     }
     createQueryBuilder(model) {
         return __awaiter(this, void 0, void 0, function* () {
             if (model) {
-                let repo = yield this._getRepository(model);
+                const repo = yield this.getRepository(model);
                 return repo.createQueryBuilder(model.getSchemaName());
             }
-            else {
-                let connection = yield this._connectionPromise;
-                return connection.createQueryBuilder();
-            }
+            const connection = yield this.connectionPromise;
+            return connection.createQueryBuilder();
         });
     }
     createQueryRunner() {
         return __awaiter(this, void 0, void 0, function* () {
-            let connection = yield this._connectionPromise;
+            const connection = yield this.connectionPromise;
             return connection.createQueryRunner();
         });
     }
@@ -197,9 +229,9 @@ class BaseDatabase {
                 if (!model) {
                     model = entity[0].constructor;
                 }
-                if (typeof entity[0] !== "number") {
-                    let ids = [];
-                    entity.forEach(ent => ids.push(ent.id));
+                if (typeof entity[0] !== 'number') {
+                    const ids = [];
+                    entity.forEach((ent) => ids.push(ent.id));
                     entity = ids;
                 }
             }
@@ -207,22 +239,22 @@ class BaseDatabase {
                 if (!model) {
                     model = entity.constructor;
                 }
-                if (typeof entity !== "number") {
+                if (typeof entity !== 'number') {
                     entity = entity.id;
                 }
             }
-            let repository = yield this._getRepository(model);
+            const repository = yield this.getRepository(model);
             return repository.delete(entity);
         });
     }
     rawQuery(sql, params) {
         return __awaiter(this, void 0, void 0, function* () {
-            return (yield this._connectionPromise).query(sql, params);
+            return (yield this.connectionPromise).query(sql, params);
         });
     }
     waitForConnection() {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._connectionPromise;
+            return this.connectionPromise;
         });
     }
     /**
@@ -235,38 +267,36 @@ class BaseDatabase {
         return this.instance;
     }
     static addModel(model) {
-        BaseDatabase._models[model.getSchemaName()] = model;
+        BaseDatabase.models[model.getSchemaName()] = model;
     }
     static getModel(modelName) {
-        if (modelName) {
-            return this._models[modelName];
-        }
-        else {
-            return this._models;
-        }
+        return this.models[modelName];
+    }
+    static getAllModels() {
+        return this.models;
     }
 }
 exports.BaseDatabase = BaseDatabase;
-BaseDatabase._models = {};
+BaseDatabase.models = {};
 BaseDatabase.CONNECTION_OPTIONS = {
-    location: "default",
+    location: 'default',
     // autoSave: true,
-    logging: ["error", "warn"],
+    logging: ['error', 'warn'],
     synchronize: true,
     // charset: "utf8mb4",
     // extra: {
     // }
 };
 BaseDatabase.TYPES = {
-    INTEGER: "int",
-    FLOAT: "float",
-    DATE: "datetime",
-    STRING: "varchar",
-    TEXT: "text",
-    MEDIUMTEXT: "mediumtext",
-    BOOLEAN: "boolean",
-    JSON: "json",
-    SIMPLE_JSON: "simple-json",
-    MY_JSON: "my-json",
+    INTEGER: 'int',
+    FLOAT: 'float',
+    DATE: 'datetime',
+    STRING: 'varchar',
+    TEXT: 'text',
+    MEDIUMTEXT: 'mediumtext',
+    BOOLEAN: 'boolean',
+    JSON: 'json',
+    SIMPLE_JSON: 'simple-json',
+    MY_JSON: 'my-json',
 };
 //# sourceMappingURL=BaseDatabase.js.map

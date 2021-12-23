@@ -1,17 +1,24 @@
-import {BaseDatabase} from "./BaseDatabase";
+import { BaseDatabase } from './BaseDatabase';
+import { ColumnType } from 'typeorm';
+import { BDRelationshipType } from './BDRelationshipType';
+import { BDColumnType } from './BDColumnType';
 
 export class BaseModel {
-
     static SCHEMA_NAME: string;
-    static _database: BaseDatabase;
+    protected static database: BaseDatabase = null;
+
     static RELATION;
 
+    static setDatabase(database: BaseDatabase) {
+        this.database = database;
+    }
+
     id: number;
-    _isLoaded: boolean;
+    private isLoaded: boolean;
 
     constructor() {
         this.id = null;
-        this._isLoaded = false;
+        this.isLoaded = false;
     }
 
     getId() {
@@ -22,72 +29,71 @@ export class BaseModel {
         this.id = id;
     }
 
-    static getColumnDefinitions() {
+    static getColumnDefinitions(): Record<string, BDColumnType | string> {
         return {
             id: {
                 primary: true,
                 type: BaseDatabase.TYPES.INTEGER,
-                generated: true
+                generated: true,
             },
-        }
+        };
     }
 
-    static getRelationDefinitions() {
+    static getRelationDefinitions(): Record<string, BDRelationshipType> {
         return {};
     }
 
-    static getRelations() {
+    static getRelations(): string[] {
         return Object.keys(this.getRelationDefinitions());
     }
 
     static getSchemaDefinition() {
-        let columns = this.getColumnDefinitions();
-        Object.keys(columns).forEach(column => {
-            if (typeof columns[column] === "string") {
-                columns[column] = {type: columns[column]};
+        const columns = this.getColumnDefinitions();
+        Object.keys(columns).forEach((columnName) => {
+            let column = columns[columnName];
+            if (typeof column === 'string') {
+                column = { type: columns[columnName] as ColumnType };
             }
-            if (columns[column].type === BaseDatabase.TYPES.MY_JSON && !columns[column].transformer) {
-                columns[column].type = BaseDatabase.TYPES.MEDIUMTEXT;
-                columns[column].transformer = {
-                    from: text => {
-                        return (text ? JSON.parse(text) : null)
+            if (column.type === BaseDatabase.TYPES.MY_JSON && !column.transformer) {
+                column.type = BaseDatabase.TYPES.MEDIUMTEXT;
+                column.transformer = {
+                    from: (text) => {
+                        return text ? JSON.parse(text) : null;
                     },
-                    to: json => {
-                        return (json ? JSON.stringify(json) : "")
-                    }
-                }
+                    to: (json) => {
+                        return json ? JSON.stringify(json) : '';
+                    },
+                };
             }
-            if (columns[column].type === BaseDatabase.TYPES.BOOLEAN && !columns[column].transformer) {
-                columns[column].transformer = {
-                    from: val => {
-                        if (val === "false"){
+            if (column.type === BaseDatabase.TYPES.BOOLEAN && !column.transformer) {
+                column.transformer = {
+                    from: (val) => {
+                        if (val === 'false') {
                             return false;
                         }
-                        else if (val === "true"){
+                        if (val === 'true') {
                             return true;
                         }
-                        else {
-                            return val
-                        }
+                        return val;
                     },
-                    to: val => {
+                    to: (val) => {
                         // console.log("to", val);
                         return val;
-                        if (val === true){
-                            return 1
-                        }
-                        else {
-                            return 0;
-                        }
-                    }
-                }
+                        // if (val === true) {
+                        //     return 1;
+                        // }
+                        // return 0;
+                    },
+                };
             }
+
+            columns[columnName] = column;
         });
         return {
             name: this.getSchemaName(),
             target: this,
-            columns: columns,
-            relations: this.getRelationDefinitions()
+            columns: columns as Record<string, BDColumnType>,
+            relations: this.getRelationDefinitions(),
         };
     }
 
@@ -97,52 +103,53 @@ export class BaseModel {
         }
         return this.SCHEMA_NAME;
     }
-    setLoaded(isLoaded){
-        this._isLoaded = isLoaded;
+
+    setLoaded(isLoaded) {
+        this.isLoaded = isLoaded;
     }
 
     async save() {
-        return (<typeof BaseModel>this.constructor)._database.saveEntity(this);
+        return (<typeof BaseModel>this.constructor).database.saveEntity(this);
     }
 
     async delete() {
-        return (<typeof BaseModel>this.constructor)._database.deleteEntity(this);
+        return (<typeof BaseModel>this.constructor).database.deleteEntity(this);
     }
 
     static async deleteMany(entities) {
-        return this._database.deleteEntity(entities);
+        return this.database.deleteEntity(entities);
     }
 
     static async saveMany(entities) {
-        return this._database.saveEntity(entities);
+        return this.database.saveEntity(entities);
     }
 
     static async find(where?, order?, limit?, offset?, relations?) {
-        return this._database.findEntities(this, where, order, limit, offset, relations);
+        return this.database.findEntities(this, where, order, limit, offset, relations);
     }
 
     static async findAndCount(where?, order?, limit?, offset?, relations?) {
-        return this._database.findAndCountEntities(this, where, order, limit, offset, relations);
+        return this.database.findAndCountEntities(this, where, order, limit, offset, relations);
     }
 
     static async count(where?, order?, limit?, offset?, relations?) {
-        return this._database.count(this, where, order, limit, offset, relations);
+        return this.database.count(this, where, order, limit, offset, relations);
     }
 
     static async findOne(where?, order?, offset?, relations?) {
-        return this._database.findOneEntity(this, where, order, offset, relations);
+        return this.database.findOneEntity(this, where, order, offset, relations);
     }
 
     static async findById(id, relations?) {
-        return this._database.findById(this, id, relations);
+        return this.database.findById(this, id, relations);
     }
 
     static async findByIds(ids, relations?) {
-        return this._database.findByIds(this, ids, relations);
+        return this.database.findByIds(this, ids, relations);
     }
 
     static async clear() {
-        return this._database.clearModel(this);
+        return this.database.clearModel(this);
     }
 
     static equals(a, b) {
@@ -150,29 +157,23 @@ export class BaseModel {
             return true;
         }
 
-        if (a === null || b === null){
+        if (a === null || b === null) {
             return false;
         }
 
         if (Array.isArray(a) && Array.isArray(b) && a.length === b.length) {
-            return a.every((subA, index) => {
-                this.equals(subA, b[index]);
-            });
-        } else if (a instanceof this && b instanceof this) {
+            return a.every((subA, index) => this.equals(subA, b[index]));
+        }
+        if (a instanceof this && b instanceof this) {
             return a.constructor === b.constructor && a.getId() === b.getId();
         }
+        return false;
     }
 }
 
-/**
- * @type {null | BaseDatabase}
- * @private
- */
-BaseModel._database = null;
-
 BaseModel.RELATION = {
-    MANY_TO_MANY: "many-to-many",
-    MANY_TO_ONE: "many-to-one",
-    ONE_TO_MANY: "one-to-many",
-    ONE_TO_ONE: "one-to-one"
+    MANY_TO_MANY: 'many-to-many',
+    MANY_TO_ONE: 'many-to-one',
+    ONE_TO_MANY: 'one-to-many',
+    ONE_TO_ONE: 'one-to-one',
 };

@@ -14,7 +14,10 @@ const BaseDatabase_1 = require("./BaseDatabase");
 class BaseModel {
     constructor() {
         this.id = null;
-        this._isLoaded = false;
+        this.isLoaded = false;
+    }
+    static setDatabase(database) {
+        this.database = database;
     }
     getId() {
         return this.id;
@@ -27,7 +30,7 @@ class BaseModel {
             id: {
                 primary: true,
                 type: BaseDatabase_1.BaseDatabase.TYPES.INTEGER,
-                generated: true
+                generated: true,
             },
         };
     }
@@ -38,53 +41,51 @@ class BaseModel {
         return Object.keys(this.getRelationDefinitions());
     }
     static getSchemaDefinition() {
-        let columns = this.getColumnDefinitions();
-        Object.keys(columns).forEach(column => {
-            if (typeof columns[column] === "string") {
-                columns[column] = { type: columns[column] };
+        const columns = this.getColumnDefinitions();
+        Object.keys(columns).forEach((columnName) => {
+            let column = columns[columnName];
+            if (typeof column === 'string') {
+                column = { type: columns[columnName] };
             }
-            if (columns[column].type === BaseDatabase_1.BaseDatabase.TYPES.MY_JSON && !columns[column].transformer) {
-                columns[column].type = BaseDatabase_1.BaseDatabase.TYPES.MEDIUMTEXT;
-                columns[column].transformer = {
-                    from: text => {
-                        return (text ? JSON.parse(text) : null);
+            if (column.type === BaseDatabase_1.BaseDatabase.TYPES.MY_JSON && !column.transformer) {
+                column.type = BaseDatabase_1.BaseDatabase.TYPES.MEDIUMTEXT;
+                column.transformer = {
+                    from: (text) => {
+                        return text ? JSON.parse(text) : null;
                     },
-                    to: json => {
-                        return (json ? JSON.stringify(json) : "");
-                    }
+                    to: (json) => {
+                        return json ? JSON.stringify(json) : '';
+                    },
                 };
             }
-            if (columns[column].type === BaseDatabase_1.BaseDatabase.TYPES.BOOLEAN && !columns[column].transformer) {
-                columns[column].transformer = {
-                    from: val => {
-                        if (val === "false") {
+            if (column.type === BaseDatabase_1.BaseDatabase.TYPES.BOOLEAN && !column.transformer) {
+                column.transformer = {
+                    from: (val) => {
+                        if (val === 'false') {
                             return false;
                         }
-                        else if (val === "true") {
+                        if (val === 'true') {
                             return true;
                         }
-                        else {
-                            return val;
-                        }
+                        return val;
                     },
-                    to: val => {
+                    to: (val) => {
                         // console.log("to", val);
                         return val;
-                        if (val === true) {
-                            return 1;
-                        }
-                        else {
-                            return 0;
-                        }
-                    }
+                        // if (val === true) {
+                        //     return 1;
+                        // }
+                        // return 0;
+                    },
                 };
             }
+            columns[columnName] = column;
         });
         return {
             name: this.getSchemaName(),
             target: this,
             columns: columns,
-            relations: this.getRelationDefinitions()
+            relations: this.getRelationDefinitions(),
         };
     }
     static getSchemaName() {
@@ -94,61 +95,61 @@ class BaseModel {
         return this.SCHEMA_NAME;
     }
     setLoaded(isLoaded) {
-        this._isLoaded = isLoaded;
+        this.isLoaded = isLoaded;
     }
     save() {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.constructor._database.saveEntity(this);
+            return this.constructor.database.saveEntity(this);
         });
     }
     delete() {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.constructor._database.deleteEntity(this);
+            return this.constructor.database.deleteEntity(this);
         });
     }
     static deleteMany(entities) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._database.deleteEntity(entities);
+            return this.database.deleteEntity(entities);
         });
     }
     static saveMany(entities) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._database.saveEntity(entities);
+            return this.database.saveEntity(entities);
         });
     }
     static find(where, order, limit, offset, relations) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._database.findEntities(this, where, order, limit, offset, relations);
+            return this.database.findEntities(this, where, order, limit, offset, relations);
         });
     }
     static findAndCount(where, order, limit, offset, relations) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._database.findAndCountEntities(this, where, order, limit, offset, relations);
+            return this.database.findAndCountEntities(this, where, order, limit, offset, relations);
         });
     }
     static count(where, order, limit, offset, relations) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._database.count(this, where, order, limit, offset, relations);
+            return this.database.count(this, where, order, limit, offset, relations);
         });
     }
     static findOne(where, order, offset, relations) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._database.findOneEntity(this, where, order, offset, relations);
+            return this.database.findOneEntity(this, where, order, offset, relations);
         });
     }
     static findById(id, relations) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._database.findById(this, id, relations);
+            return this.database.findById(this, id, relations);
         });
     }
     static findByIds(ids, relations) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._database.findByIds(this, ids, relations);
+            return this.database.findByIds(this, ids, relations);
         });
     }
     static clear() {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._database.clearModel(this);
+            return this.database.clearModel(this);
         });
     }
     static equals(a, b) {
@@ -159,25 +160,20 @@ class BaseModel {
             return false;
         }
         if (Array.isArray(a) && Array.isArray(b) && a.length === b.length) {
-            return a.every((subA, index) => {
-                this.equals(subA, b[index]);
-            });
+            return a.every((subA, index) => this.equals(subA, b[index]));
         }
-        else if (a instanceof this && b instanceof this) {
+        if (a instanceof this && b instanceof this) {
             return a.constructor === b.constructor && a.getId() === b.getId();
         }
+        return false;
     }
 }
 exports.BaseModel = BaseModel;
-/**
- * @type {null | BaseDatabase}
- * @private
- */
-BaseModel._database = null;
+BaseModel.database = null;
 BaseModel.RELATION = {
-    MANY_TO_MANY: "many-to-many",
-    MANY_TO_ONE: "many-to-one",
-    ONE_TO_MANY: "one-to-many",
-    ONE_TO_ONE: "one-to-one"
+    MANY_TO_MANY: 'many-to-many',
+    MANY_TO_ONE: 'many-to-one',
+    ONE_TO_MANY: 'one-to-many',
+    ONE_TO_ONE: 'one-to-one',
 };
 //# sourceMappingURL=BaseModel.js.map
